@@ -1,5 +1,9 @@
 # Coral Bay — an open-city crime story
 
+[![make.fun · gta6-01](https://make.fun/badge/gta6-01.svg)](https://make.fun/bounty/gta6-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-01)
+[![rank](https://make.fun/badge/gta6-01/xenopatijaya/gta6-01-v2/rank.svg)](https://make.fun/bounty/gta6-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-01)
+[![reward](https://make.fun/badge/gta6-01/xenopatijaya/gta6-01-v2/reward.svg)](https://make.fun/bounty/gta6-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-01)
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![make.fun bounty gta6-01](https://img.shields.io/badge/make.fun-gta6--01-orange)](https://make.fun/c/gta6-01)
 [![Playable offline](https://img.shields.io/badge/play-offline%20in%20Chrome-brightgreen)](game/index.html)
