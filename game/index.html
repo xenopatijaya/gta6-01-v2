@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coral Bay — Open-City Crime Story</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #1a2028; font-family: Arial, Helvetica, sans-serif; }
+  #game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+  #hud { display: none; position: fixed; inset: 0; pointer-events: none; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.7); }
+  .panel { background: rgba(12, 18, 26, 0.72); border-radius: 10px; padding: 8px 12px; }
+  #top-left { position: absolute; top: 12px; left: 12px; }
+  #stars { font-size: 26px; letter-spacing: 2px; line-height: 1; }
+  .star { color: rgba(255,255,255,.35); }
+  .star.on { color: #ffd76e; }
+  #cash { font-size: 24px; font-weight: bold; color: #7be495; margin-top: 2px; }
+  #health-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+  #health-bar { width: 170px; height: 12px; background: rgba(0,0,0,.55); border-radius: 6px; overflow: hidden; }
+  #health-fill { height: 100%; width: 100%; background: #58d68d; }
+  #ammo { font-size: 14px; margin-top: 4px; }
+  #top-right { position: absolute; top: 12px; right: 12px; text-align: right; }
+  #clock { font-size: 20px; font-weight: bold; }
+  #mission-label { font-size: 13px; color: #ffd76e; font-weight: bold; margin-top: 2px; }
+  #objective { position: absolute; top: 76px; left: 50%; transform: translateX(-50%); max-width: 640px; text-align: center; font-size: 16px; }
+  #timer { color: #ff9d5c; font-weight: bold; }
+  #hint { position: absolute; top: 116px; left: 50%; transform: translateX(-50%); color: #ffb3b3; font-size: 15px; font-weight: bold; }
+  #minimap-wrap { position: absolute; left: 12px; bottom: 12px; }
+  #minimap { width: 190px; height: 190px; border: 2px solid rgba(255,255,255,.5); border-radius: 8px; }
+  #bottom-right { position: absolute; right: 12px; bottom: 12px; text-align: right; }
+  #speed { font-size: 28px; font-weight: bold; }
+  #controls-hint { font-size: 12px; opacity: .85; margin-top: 4px; line-height: 1.5; }
+  #toast { position: absolute; bottom: 220px; left: 50%; transform: translateX(-50%); font-size: 18px; font-weight: bold; text-align: center; transition: opacity .4s; max-width: 700px; }
+  #crosshair { position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border: 2px solid rgba(255,255,255,.9); border-radius: 50%; }
+  #damage { position: fixed; inset: 0; pointer-events: none; box-shadow: inset 0 0 90px 30px rgba(255,0,0,.55); opacity: 0; transition: opacity .2s; }
+  .screen { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; flex-direction: column; text-align: center; color: #fff; background: linear-gradient(180deg, rgba(10,16,26,.55), rgba(10,16,26,.88)); z-index: 10; }
+  .screen h1 { font-size: 64px; margin: 0; letter-spacing: 4px; color: #ffd76e; text-shadow: 0 4px 18px rgba(0,0,0,.8); }
+  .screen h2 { font-size: 22px; margin: 8px 0 4px; font-weight: normal; color: #ffe9b0; }
+  .screen p { max-width: 620px; font-size: 16px; line-height: 1.55; }
+  .btn { pointer-events: auto; cursor: pointer; background: #ffd76e; color: #1a2028; border: none; border-radius: 8px; padding: 12px 28px; font-size: 18px; font-weight: bold; margin: 6px; }
+  .btn:hover { background: #ffe9a8; }
+  .btn.ghost { background: rgba(255,255,255,.16); color: #fff; }
+  #howto { display: none; background: rgba(0,0,0,.55); border-radius: 10px; padding: 12px 20px; margin-top: 10px; text-align: left; font-size: 14px; line-height: 1.7; }
+  #over-title { font-size: 72px; color: #ff5a4d; }
+  #status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+</style>
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.js" } }
+</script>
+</head>
+<body>
+<canvas id="game" aria-label="Coral Bay: drive, explore and complete missions in an open city"></canvas>
+<p id="status" role="status" aria-live="polite"></p>
+<div id="hud">
+  <div id="top-left" class="panel">
+    <div id="stars"></div>
+    <div id="cash">$120</div>
+    <div id="health-row"><span>♥ <span id="health-num">100</span></span><div id="health-bar"><div id="health-fill"></div></div></div>
+    <div id="ammo"></div>
+  </div>
+  <div id="top-right" class="panel">
+    <div id="clock">Day 1 17:24</div>
+    <div id="mission-label">MISSION 1/5</div>
+  </div>
+  <div id="objective" class="panel"><span id="objective-text"></span> <span id="timer"></span></div>
+  <div id="hint"></div>
+  <div id="minimap-wrap"><canvas id="minimap" width="190" height="190"></canvas></div>
+  <div id="bottom-right" class="panel">
+    <div id="speed"></div>
+    <div id="controls-hint">WASD move / drive · E enter car · Click shoot · F punch<br>R reload · Space jump / brake · Shift sprint · M mute · P pause</div>
+  </div>
+  <div id="toast"></div>
+  <div id="crosshair"></div>
+</div>
+<div id="damage"></div>
+
+<div id="screen-start" class="screen" style="display:flex">
+  <h1>CORAL BAY</h1>
+  <h2>An open-city crime story in the sun</h2>
+  <p>Dario &ldquo;Daz&rdquo; Moreno is back in Coral Bay and owes fixer Vera Solano $5,000.
+  Steal cars, run packages, collect debts, shake the Coral Bay PD and pull one last
+  harbor heist — across 5 story missions in a living city of traffic, pedestrians
+  and police.</p>
+  <div>
+    <button class="btn" id="btn-start">▶ Start story</button>
+    <button class="btn ghost" id="btn-continue">Continue save</button>
+    <button class="btn ghost" id="btn-how">How to play</button>
+  </div>
+  <div id="howto">
+    WASD — move / drive &nbsp;·&nbsp; Mouse drag — look around &nbsp;·&nbsp; Shift — sprint<br>
+    Space — jump / handbrake &nbsp;·&nbsp; E — enter / exit car &nbsp;·&nbsp; Click — shoot pistol<br>
+    F — punch &nbsp;·&nbsp; R — reload &nbsp;·&nbsp; H — horn &nbsp;·&nbsp; N — next mission &nbsp;·&nbsp; M — mute &nbsp;·&nbsp; P — pause<br>
+    Crimes raise your wanted stars. Hide from the police until the stars fade.
+  </div>
+  <p style="font-size:13px;opacity:.8">An original game. No Rockstar / GTA names, art or music. All art and sound are generated in code.</p>
+</div>
+
+<div id="screen-pause" class="screen">
+  <h1 style="font-size:44px">PAUSED</h1>
+  <p>Coral Bay waits for you.</p>
+  <div>
+    <button class="btn" id="btn-resume">Resume</button>
+    <button class="btn ghost" id="btn-save">Save game</button>
+    <button class="btn ghost" id="btn-restart">Restart story</button>
+    <button class="btn ghost" id="btn-menu">Main menu</button>
+    <button class="btn ghost" id="btn-mute">Mute / unmute</button>
+  </div>
+</div>
+
+<div id="screen-over" class="screen">
+  <h1 id="over-title">WASTED</h1>
+  <p id="over-sub"></p>
+  <div><button class="btn" id="btn-retry">Try again (−$200)</button></div>
+</div>
+
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
